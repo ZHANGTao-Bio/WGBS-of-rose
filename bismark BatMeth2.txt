@@ -1,0 +1,524 @@
+#查看MD5值
+md5sum 文件
+
+#bismark构建基因组索引
+
+nohup bismark_genome_preparation --bowtie2 /home/zxt/basedata/genome/raw/ &
+# 也可只指出参考基因组文件夹路径，参考基因组问价必须为.fa .fasta格式
+
+#bismark比对
+nohup bismark -p 3 --genome /home/zxt/basedata/genome/raw -1 /home/zxt/wgbs/S2c_1.clean.fq.gz -2 /home/zxt/wgbs/S2c_2.clean.fq.gz --basename S2c --unmapped --ambiguous 1>S2c.log 2>1 &
+nohup bismark -p 2 --genome /home/zxt/basedata/genome/raw -1 /home/zxt/wgbs/S2b_1.clean.fq.gz -2 /home/zxt/wgbs/S2b_2.clean.fq.gz --basename S2b --unmapped --ambiguous 1>S2b.log 2>1 &
+nohup bismark -p 2 --genome /home/zxt/basedata/genome/raw -1 /home/zxt/wgbs/S6c_1.clean.fq.gz -2 /home/zxt/wgbs/S6c_2.clean.fq.gz --basename S6c --unmapped --ambiguous 1>S6c.log 2>1 &
+
+nohup bismark -p 2 --genome /home/zxt/basedata/genome/raw -1 /home/zxt/wgbs/workspace/anligment/S4_1_R1.fastq.gz -2 /home/zxt/wgbs/workspace/anligment/S4_1_R2.fastq.gz --basename S6_3 --unmapped --ambiguous 1>S6c.log 2>1 &
+# -p 指线程数 一般2-4
+--genome 指包含上一步结果的文件夹路径
+--basename 输出文件名前缀
+
+##bsmap比对
+nohup bsmap -a /home/zxt/wgbs/S4b_1.clean.fq.gz -b /home/zxt/wgbs/S4b_2.clean.fq.gz -d /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta.gz -o bsmap_result_S4b.bam -q 20 -p 4 1>bsmap_S4b_report.txt 2>&1 &
+
+nohup bsmap -a /home/zxt/wgbs/S2c_1.clean.fq.gz -b /home/zxt/wgbs/S2c_2.clean.fq.gz -d /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta.gz -o bsmap_result_S2c.bam -q 20 -p 3 1>bsmap_S2c_report.txt 2>&1 &
+
+nohup bsmap -a /home/zxt/wgbs/S2c_1.clean.fq.gz -b /home/zxt/wgbs/S2c_2.clean.fq.gz -d /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta.gz -o /home/zxt/wgbs/wsp2/bsmap_result_S2c.bam -q 20 -p 1 1>bsmap_S2c_report.txt 2>&1 &
+
+nohup bsmap -a /home/zxt/wgbs/S2b_1.clean.fq.gz -b /home/zxt/wgbs/S2b_2.clean.fq.gz -d /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta.gz -o /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.bam -q 20 -p 4 1>bsmap_S2b_report.txt 2>&1 &
+
+
+
+
+
+
+#排序
+nohup samtools sort -@ 4 -o bsmap_result_S4b.sorted.bam bsmap_result_S4b.bam 1>S4b.sorted.log 2>&1 & 
+
+S2_1_clean_R1_bismark_bt2_pe.deduplicated.bam
+nohup samtools sort -@ 2 -o S2_1_bismark_sorted_bam S2_1_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S2_1.sorted.log 2>&1 & 
+samtools sort -@ 2 -o S2_2_bismark_sorted_bam S2_2_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S2_2.sorted.log 2>&1 & 
+samtools sort -@ 2 -o S4_1_bismark_sorted_bam S4_1_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S4_1.sorted.log 2>&1 &
+samtools sort -@ 2 -o S4_2_bismark_sorted_bam S4_2_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S4_2.sorted.log 2>&1 &
+samtools sort -@ 2 -o S6_1_bismark_sorted_bam S6_1_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S6_1.sorted.log 2>&1 &
+samtools sort -@ 2 -o S6_2_bismark_sorted_bam S6_2_clean_R1_bismark_bt2_pe.deduplicated.bam 1>S6_2.sorted.log 2>&1 &
+
+nohup samtools sort -@ 2 -o S6_3_bismark_sorted_bam S6_3_pe.bam 1>S6_3.sorted.log 2>&1 &
+
+
+#比对结果统计#覆盖度
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.sorted.bam >S2b.coverage.txt &
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S2c.sorted.bam >S2c.coverage.txt &
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S4b.sorted.bam >S4b.coverage.txt &
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S4c.sorted.bam >S4c.coverage.txt &
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S6a.sorted.bam >S6a.coverage.txt &
+samtools coverage /home/zxt/wgbs/workspace/sorted/bsmap_result_S6c.sorted.bam >S6c.coverage.txt &
+
+###samtools按染色体提取bam文件reads
+#先对bam构建index
+samtools index *.bam
+
+samtools index bsmap_result_S2b.sorted.bam &
+samtools index bsmap_result_S2c.sorted.bam &
+samtools index bsmap_result_S4b.sorted.bam &
+samtools index bsmap_result_S4c.sorted.bam &
+samtools index bsmap_result_S6a.sorted.bam &
+samtools index bsmap_result_S6c.sorted.bam &
+
+
+#按染色体提取
+#提取chr1-7的reads
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S2b.sorted.chr1.7.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2c.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S2c.sorted.chr1.7.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4b.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S4b.sorted.chr1.7.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4c.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S4c.sorted.chr1.7.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6a.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S6a.sorted.chr1.7.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6c.sorted.bam RcHm_v2.0_Chr1 RcHm_v2.0_Chr2 RcHm_v2.0_Chr3 RcHm_v2.0_Chr4 RcHm_v2.0_Chr5 RcHm_v2.0_Chr6 RcHm_v2.0_Chr7 >bsmap_result_S6c.sorted.chr1.7.bam &
+#提取叶绿体chrCP的reads
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.sorted.bam RcHm_v2.0_CP >bsmap_result_S2b.sorted.chrCP.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2c.sorted.bam RcHm_v2.0_CP >bsmap_result_S2c.sorted.chrCP.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4b.sorted.bam RcHm_v2.0_CP >bsmap_result_S4b.sorted.chrCP.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4c.sorted.bam RcHm_v2.0_CP >bsmap_result_S4c.sorted.chrCP.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6a.sorted.bam RcHm_v2.0_CP >bsmap_result_S6a.sorted.chrCP.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6c.sorted.bam RcHm_v2.0_CP >bsmap_result_S6c.sorted.chrCP.bam &
+#提取线粒体chrMT的reads
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.sorted.bam RcHm_v2.0_MT >bsmap_result_S2b.sorted.chrMT.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S2c.sorted.bam RcHm_v2.0_MT >bsmap_result_S2c.sorted.chrMT.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4b.sorted.bam RcHm_v2.0_MT >bsmap_result_S4b.sorted.chrMT.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S4c.sorted.bam RcHm_v2.0_MT >bsmap_result_S4c.sorted.chrMT.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6a.sorted.bam RcHm_v2.0_MT >bsmap_result_S6a.sorted.chrMT.bam &
+samtools view -b -h /home/zxt/wgbs/workspace/sorted/bsmap_result_S6c.sorted.bam RcHm_v2.0_MT >bsmap_result_S6c.sorted.chrMT.bam &
+
+
+#安装batmeth2
+#添加环境变量
+/home/zxt/soft/BatMeth2/bin
+export PATH=$PATH:/home/zxt/soft/BatMeth2/bin
+
+  #1.构建基因组index
+    BatMeth2 index -g ./基因组路径
+	
+	BatMeth2 index -g /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta.gz
+	
+  #2.1 计算all C位点甲基化
+  BatMeth2 calmeth --remove_dup --coverage 4 --Regions 200(小窗口，看能否滑动)
+  --Step 50000（大窗口滑动大小，大小默认为10000）
+  -nC 1
+  --binput ./bsmap_result_S2c.sorted.bam 输入文件路径 
+  --methratio S2c 输出文件前缀
+  1>S2c.log 2>&1 
+  
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2b --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S2b.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2c --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S2c.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4b --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S4b.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4c --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S4c.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6c --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S6c.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6a --binput /home/zxt/wgbs/workspace/sorted/bsmap_result_S6a.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta
+  
+  
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio bism_S2b --binput /home/zxt/wgbs/workspace/sorted/S2b_pe.sorted.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  
+  nohup BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2_1 --binput /home/zxt/wgbs/workspace/sorted/S2_1_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S2_1.log 2>&1 &
+  nohup BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2_2 --binput /home/zxt/wgbs/workspace/sorted/S2_2_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S2_2.log 2>&1 &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4_1 --binput /home/zxt/wgbs/workspace/sorted/S4_1_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S4_1.log 2>&1 &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4_2 --binput /home/zxt/wgbs/workspace/sorted/S4_2_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S4_2.log 2>&1 &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6_1 --binput /home/zxt/wgbs/workspace/sorted/S6_1_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S6_1.log 2>&1 &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6_2 --binput /home/zxt/wgbs/workspace/sorted/S6_2_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S6_2.log 2>&1 &
+  
+  nohup BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6_3 --binput /home/zxt/wgbs/workspace/sorted/S6_3_bismark_sorted_bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>S6_3.log 2>&1 &
+  
+  
+  
+  #2.2 计算核基因组 C位点甲基化
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2b.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S2b.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2c.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S2c.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4b.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S4b.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4c.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S4c.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6c.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S6a.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6a.nuclear --binput /home/zxt/wgbs/workspace/sorted/nuclear.chr1.7/bsmap_result_S6c.sorted.chr1.7.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+   
+  #2.3 计算叶绿体基因组 C位点甲基化
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2b.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S2b.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2c.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S2c.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4b.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S4b.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4c.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S4c.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6c.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S6a.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6a.CP --binput /home/zxt/wgbs/workspace/sorted/chr_CP/bsmap_result_S6c.sorted.chrCP.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  
+  #2.4 计算线粒体基因组 C位点甲基化
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2b.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S2b.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S2c.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S2c.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4b.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S4b.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S4c.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S4c.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6c.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S6a.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  BatMeth2 calmeth -Q 20 --remove_dup --coverage 4 --Regions 200 --step 50000 -nC 1 --methratio S6a.MT --binput /home/zxt/wgbs/workspace/sorted/chr_MT/bsmap_result_S6c.sorted.chrMT.bam -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta &
+  
+  
+  
+  
+  #3. 计算基因组元件甲基化水平gene TE
+
+#gene
+
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S2b.methratio.txt --out S2b.gene 1>S2b.feature.gene.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S2c.methratio.txt --out S2c.gene 1>S2c.feature.gene.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S4b.methratio.txt --out S4b.gene 1>S4b.feature.gene.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S4c.methratio.txt --out S4c.gene 1>S4c.feature.gene.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S6a.methratio.txt --out S6a.gene 1>S6a.feature.gene.log 2>&1 &
+
+
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gtf /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.gtf --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S6c.methratio.txt --out S6c.gene 1>S6c.feature.gene.log 2>&1 &
+
+##TE
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S2b.methratio.txt --out S2b.TE 1>S2b.feature.TE.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S2c.methratio.txt --out S2c.TE 1>S2c.feature.TE.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S4b.methratio.txt --out S4b.TE 1>S4b.feature.TE.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S4c.methratio.txt --out S4c.TE 1>S4c.feature.TE.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S6a.methratio.txt --out S6a.TE 1>S6a.feature.TE.log 2>&1 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -gff /home/zxt/basedata/genome/raw/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.a1.repeats.gff3 --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/workspace/4.calmeth/S6c.methratio.txt --out S6c.TE 1>S6c.feature.TE.log 2>&1 &
+##DMC.DMR
+#利用BatMeth2的batDMT工具
+[ Main paramaters ]
+-o_dm   #output file
+-o_dmr   #dmr output file when use auto detect by dmc
+-g|--genome  #Genome files
+-1    #sample1 methy files, sperate by space.实验组
+-2    #sample2 methy files, sperate by space.对照组
+-mindmc    #min dmc sites in dmr region. [default : 4]
+-minstep   #min step in bp [default : 100]
+-maxdis   #max length of dmr [default : 0]
+-pvalue  #pvalue cutoff, default: 0.01
+-FDR   #adjust pvalue cutoff default : 1.0
+-methdiff   #the cutoff of methylation differention. default: 0.25 [CpG]
+-element   #caculate predefinded region, input file with id.
+-context   #Context for DM. [CG/CHG/CHH/ALL]
+-L   #predefinded regions or loci.
+-gz  #gzip input file.
+-h   #--help
+
+
+##核基因DMC.DMR
+nohup BatMeth2 batDMR -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -o_dm S4.output.dmc -o_dmr S4.output.dmr -1 /home/zxt/wgbs/workspace/4.calmeth/nuclear.chr1.7/S4b.nuclear.methratio.txt /home/zxt/wgbs/workspace/4.calmeth/nuclear.chr1.7/S4c.nuclear.methratio.txt -2 /home/zxt/wgbs/workspace/4.calmeth/nuclear.chr1.7/S2b.nuclear.methratio.txt /home/zxt/wgbs/workspace/4.calmeth/nuclear.chr1.7/S2c.nuclear.methratio.txt -minstep 200 -mindmc 5 1>S4.nuclear.log 2>&1 &
+
+nohup BatMeth2 batDMR -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -o_dm TRV.Sid.output.dmc -o_dmr TRV.Sid.output.dmr -1 /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt -2 /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt -minstep 100 -context CHH &
+
+BatMeth2 batDMR -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -L -o_dm dm.output.txt -1 /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt -2 /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt
+
+##CP DMC.DMR
+BatMeth2 batDMR -g /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -o_dm S4.CP.output.dmc -o_dmr S4.cp.output.dmr -1 /home/zxt/wgbs/workspace/4.calmeth/chr_CP/S6a.CP.methratio.txt /home/zxt/wgbs/workspace/4.calmeth/chr_CP/S6c.CP.methratio.txt -2 /home/zxt/wgbs/workspace/4.calmeth/chr_CP/S2b.CP.methratio.txt /home/zxt/wgbs/workspace/4.calmeth/chr_CP/S2c.CP.methratio.txt -minstep 200 -mindmc 5
+
+##利用张旭东的脚本
+
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s sample.info.txt -c contrasts.txt -f calmeth --context CHH --window 200 --step 100 -t 8 -o CHH --dm dmc 
+
+
+
+nohup Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s sample.info.txt -c contrasts.txt -f calmeth --context all --window 200 --step 100 -t 8 -o all --dm all 1>all.log 2>&1 &
+
+nohup 
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 8 -o CpG --dm dmc 1>dmc.log 2>&1 &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CHH --window 300 --step 100 -t 8 -o CpG --dm dmr 1>dmr.log 2>&1 &
+
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CHG --window 300 --step 100 -t 8 -o CHG --dm dmc &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CHH --window 300 --step 100 -t 8 -o CHH --dm dmc &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 8 -o CpG --dm dmr &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CHG --window 300 --step 100 -t 8 -o CHG --dm dmr &
+
+
+
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s sample.infor.chr1.txt -c TRV.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 8 -o CpG --dm dmc 1>dmc.log 2>&1 &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s sample.infor.chr1.txt -c TRV.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 8 -o CpG --dm dmr 1>dmr.log 2>&1 &
+
+nohup Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s sample.infor.chr1.txt -c TRV.contrasts.txt -f calmeth --context CHG --window 300 --step 100 -t 8 -o CpG --dm dmc 1>dmc.log 2>&1 &
+
+
+nohup Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s S4vsS2.sample.info.txt -c S4vsS2.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 4 -o CpG --dm dmc 1>dmc.log 2>&1 &
+Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s S4vsS2.sample.info.txt -c S4vsS2.contrasts.txt -f calmeth --context CpG --window 300 --step 100 -t 4 -o CpG --dm dmr 1>dmr.log 2>&1 &
+
+
+###新标准
+nohup Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s S4vsS2.sample.info.txt -c S4vsS2.contrasts.txt -f calmeth --context CpG --window 200 --step 50 -t 2 -m 5 -o CpG --dm dmr 1>dmr.log 2>&1 &
+
+
+nohup Rscript /home/zxt/wgbs/traning/WGBS_training/11.software/run_DM_analysis.R -s TRV.sample.info.txt -c TRV.contrasts.txt -f calmeth --context CpG --window 200 --step 50 -t 4 -m 5 -o CpG --dm dmr 1>dmr.log 2>&1 &
+
+###计算DMRs的甲基化水平
+nohup BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S2_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S2_1_SID_Spe 1>S2_1_SID_Spe.log 2>&1 &
+
+
+过滤此文件S2_1_SID_Spe.body.cg.txt， 只要body 所在的行
+
+awk '$2=="BODY"' S2_1_SID_Spe.Methylevel.txt > S2_1_dmr.Methylevel.txt
+
+##批量脚本为 CG水平
+nohup BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S2_2_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S2_2 1>S2_2.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S4_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S4_1 1>S4_1.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S4_2_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S4_2 1>S4_2.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S6_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S6_1 1>S6_1.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S6_2_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S6_2 1>S6_2.log 2>&1 &
+nohup BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S6_3_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S6_3 1>S6_3.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_3 1>TRV_3.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_5 1>TRV_5.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_PSR24 1>TRV_PSR24.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_PSR28 1>TRV_PSR28.log 2>&1 &
+#提取body的CG甲基化水平
+nohup awk '$2=="BODY"' S2_2.Methylevel.txt > S2_2_dmr.Methylevel.txt &
+awk '$2=="BODY"' S4_1.Methylevel.txt > S4_1_dmr.Methylevel.txt &
+awk '$2=="BODY"' S4_2.Methylevel.txt > S4_2_dmr.Methylevel.txt &
+awk '$2=="BODY"' S6_1.Methylevel.txt > S6_1_dmr.Methylevel.txt &
+awk '$2=="BODY"' S6_2.Methylevel.txt > S6_2_dmr.Methylevel.txt &
+awk '$2=="BODY"' S6_3.Methylevel.txt > S6_3_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_3.Methylevel.txt > TRV_3_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_5.Methylevel.txt > TRV_5_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_PSR24.Methylevel.txt > TRV_PSR24_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_PSR28.Methylevel.txt > TRV_PSR28_dmr.Methylevel.txt &
+
+### CHG水平
+
+nohup BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S2_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S2_1_CHG 1>S2_2.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S2_2_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S2_2_CHG 1>S2_2.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S4_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S4_1_CHG 1>S4_1.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S4_2_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S4_2_CHG 1>S4_2.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S6_1_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S6_1_CHG 1>S6_1.log 2>&1 &
+nohup BatMeth2 methyGff --methratio /home/zxt/wgbs/workspace/4.calmeth/S6_3_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o S6_3_CHG 1>S6_3.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_3_CHG 1>TRV_3.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_5_CHG 1>TRV_5.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_PSR24_CHG 1>TRV_PSR24.log 2>&1 &
+BatMeth2 methyGff --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28_loci.CG.txt --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b /home/zxt/wgbs/overlap.ana/SID.CG.true.hypo.dmr.bed --body  -o TRV_PSR28_CHG 1>TRV_PSR28.log 2>&1 &
+#提取body的CG甲基化水平
+nohup awk '$2=="BODY"' S2_1_CHG.Methylevel.txt > S2_1_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' S2_2_CHG.Methylevel.txt > S2_2_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' S4_1_CHG.Methylevel.txt > S4_1_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' S4_2_CHG.Methylevel.txt > S4_2_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' S6_1_CHG.Methylevel.txt > S6_1_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' S6_3_CHG.Methylevel.txt > S6_3_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_3_CHG.Methylevel.txt > TRV_3_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_5_CHG.Methylevel.txt > TRV_5_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_PSR24_CHG.Methylevel.txt > TRV_PSR24_CHG_dmr.Methylevel.txt &
+awk '$2=="BODY"' TRV_PSR28_CHG.Methylevel.txt > TRV_PSR28_CHG_dmr.Methylevel.txt &
+
+##TE鉴定
+
+/home/zxt/anaconda3/envs/reaptmasker/share/RepeatMasker/Libraries
+nohup RepeatMasker --species Viridiplantae -e rmblast -pa 4 -gff -qq Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>log.o.txt 2>log.e.txt &
+nohup RepeatMasker --species apple -e rmblast -pa 4 -gff -qq Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>log.o.txt 2>log.e.txt &
+nohup RepeatMasker --species "Fragaria x ananassa" -e rmblast -pa 4 -gff -qq Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta 1>log.o.txt 2>log.e.txt &
+
+#安装注释库
+cd ~/software/RepeatMasker/Libraries/
+
+wget -c https://www.dfam.org/releases/Dfam_3.4/families/Dfam_curatedonly.embl.gz
+wget -c https://www.dfam.org/releases/Dfam_3.4/families/Dfam_curatedonly.h5.gz
+wget -c https://www.dfam.org/releases/Dfam_3.4/families/Dfam_curatedonly.hmm.gz
+
+
+gunzip Dfam_curatedonly.embl.gz
+gunzip Dfam_curatedonly.h5.gz
+gunzip Dfam_curatedonly.hmm.gz
+
+mv Dfam_curatedonly.embl Dfam.embl
+mv Dfam_curatedonly.h5 Dfam.h5
+mv Dfam_curatedonly.hmm Dfam.hmm
+
+
+gunzip Dfam.h5.gz
+
+
+
+trf
+/home/zxt/anaconda3/envs/reaptmasker/bin
+
+
+
+
+Fragaria x ananassa
+Malus domestica
+
+
+deeptools可视化
+#计算 
+computeMatrix scale-regions 
+    -R DNAhat.bed3.txt 
+	-S ../data/TRV_3_CG.bw ../data/TRV_5_CG.bw ../data/TRV_PSR_24_CG.bw ../data/TRV_PSR_28_CG.bw 
+	-b 2000 -a 2000 
+	--regionBodyLength 5000 --skipZeros 
+	-o matrix2_multipleBW_l2r_dmt4groups_scaled.gz 
+	--outFileNameMatrix matrix2_multipleBW_l2r_dmt4groups_scaled.tab  
+	--outFileSortedRegions regions2_multipleBW_l2r_dmt4groups_genes.bed
+
+TRV和TRV_psR合并
+computeMatrix scale-regions -R DNAhat.bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 3000 --binSize 100 --skipZeros -o TRV_merge_ALL_ATC_TE_bed4_bin100.gz --outFileNameMatrix TRV_merge_ALL_ATC_TE_bed_bin100.tab --outFileSortedRegions TRV_merge_ALL_ATC_TE4_bin100.bed
+
+computeMatrix scale-regions -R DNAcatac.bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 3000 --skipZeros -o TRV_merge_ALL_catac_TE_bed4.gz --outFileNameMatrix TRV_merge_ALL_catac_TE_bed.tab --outFileSortedRegions TRV_merge_ALL_catac_TE4.bed
+
+computeMatrix scale-regions -R unDMT2DNAhat.bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 3000 --skipZeros -o TRV_merge_ALL_unhAT_TE_bed4.gz --outFileNameMatrix TRV_merge_ALL_unhAT_TE_bed.tab --outFileSortedRegions TRV_merge_ALL_unhAT_TE4.bed
+
+ nohup computeMatrix scale-regions -R DMT_DMRs2TE.bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 3000 --skipZeros -o DMT_DMRs2TE.bed4.gz --outFileNameMatrix DMT_DMRs2TE.bed4.tab --outFileSortedRegions DMT_DMRs2TE.bed
+ 
+ nohup computeMatrix scale-regions -R unDMT_copia.bed4.txt LTRcopia.bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 3000 --skipZeros -o copiaanduncopia.gz --outFileNameMatrix copiaanduncopia.gz.tab --outFileSortedRegions copiaanduncopia.gz.bed -p 4
+ 
+nohup computeMatrix scale-regions -R down_DEGs_bed4.txt nodiffe_DEGs_bed4.txt up_DEGs_bed4.txt -S  ../data/TRV_PSR_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros -o DEGs_scale_model.gz --outFileNameMatrix DEGs_scale_model.tab --outFileSortedRegions DEGs_scale_model.bed -p 8
+
+nohup computeMatrix scale-regions -R down_DEGs_bed4.txt nodiffe_DEGs_bed4.txt up_DEGs_bed4.txt -S  ../data/TRV_PSR_ALL.bw ../data/TRV_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros --missingDataAsZero -o DEGs_scale_model.methylation.TRV_TRV_PSR.gz --outFileNameMatrix  DEGs_scale_model.methylation.TRV_TRV_PSR_2.tab --outFileSortedRegions DEGs_scale_model.methylation.TRV_TRV_PSR_2.bed -p 8
+
+nohup computeMatrix scale-regions -R D1213T111.up.DEGs.bed4.txt D1213T111.down.DEGs.bed4.txt -S  ../data/TRV_PSR_ALL.bw ../data/TRV_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros --missingDataAsZero -o D1213T111updown.mathyaltion.gz --outFileNameMatrix  D1213T111updown.mathyaltion.tab --outFileSortedRegions D1213T111updown.mathyaltion.bed -p 8
+
+
+
+nohup computeMatrix scale-regions -R D1213T111.up.DEGs.bed4.txt D1213T111.NA.DEGs.bed4.txt D1213T111.down.DEGs.bed4.txt -S  ../data/TRV_PSR_ALL.bw ../data/TRV_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros --missingDataAsZero -o DEGs_scale_model.methylation.D1213T111.gz --outFileNameMatrix  DEGs_scale_model.methylation.D1213T111.tab --outFileSortedRegions DEGs_scale_model.methylation.D1213T111.bed -p 8
+
+
+
+
+nohup computeMatrix scale-regions -R down_DEGs_bed4.txt nodiffe_DEGs_bed4.txt up_DEGs_bed4.txt -S  ../data/TRV_3.bw ../data/TRV_5.bw ../data/T_P_24.bw ../data/T_P_25.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros -o DEGs_scale_model_expression2000.gz --outFileNameMatrix DEGs_scale_model_expression2000.tab --outFileSortedRegions DEGs_scale_model_expression2000.bed -p 8
+
+nohup computeMatrix scale-regions -R D1213T111.up.DEGs.bed4.txt D1213T111.NA.DEGs.bed4.txt D1213T111.down.DEGs.bed4.txt -S  ../data/TRV1.bw ../data/TRV11.bw ../data/DMT12.bw ../data/DMT13.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros -o D1213T111_scale_model_expression2000.gz --outFileNameMatrix D1213T111_scale_model_expression2000.tab --outFileSortedRegions D1213T111_scale_model_expression2000.bed -p 8
+
+nohup computeMatrix scale-regions -R D1213T111.up.DEGs.bed4.txt D1213T111.down.DEGs.bed4.txt -S  ../data/TRV_PSR_ALL.bw ../data/TRV_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --skipZeros -o D1213T111_scale_model_expression2000.gz --outFileNameMatrix D1213T111_scale_model_expression2000.tab --outFileSortedRegions D1213T111_scale_model_expression2000.bed -p 8
+###计算3个clstuer在TRV和DMT沉默的甲基化水平
+nohup computeMatrix scale-regions -R C1_425.bed4.txt C2_290.bed4.txt C3_502.bed4.txt -S  ../data/TRV_PSR_ALL.bw ../data/TRV_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --binSize 50 --skipZeros -o newclusterC123.meth.gz --outFileNameMatrix newclusterC123.meth.tab --outFileSortedRegions newclusterC123.meth.bed -p 8
+
+#计算3个clstuer在S2,S4.S6的甲基化水平
+nohup computeMatrix scale-regions -R C1_425.bed4.txt C2_290.bed4.txt C3_502.bed4.txt -S  ../data/S2_1_ALL.bw ../data/S4_1_ALL.bw ../data/S6_1_ALL.bw -b 2000 -a 2000 --regionBodyLength 2000 --binSize 50 --skipZeros -o clusterC123inS246.meth.gz --outFileNameMatrix clusterC123inS246.meth.tab --outFileSortedRegions clusterC123inS246.meth.bed -p 8
+
+
+
+computeMatrix reference-point \ # choose the mode
+--referencePoint TSS \ # alternatives: TES, center
+-b 3000 -a 10000 \ # define the region you are interested in
+-R testFiles/genes.bed
+-S testFiles/log2ratio_H3K4Me3_chr19.bw
+--skipZeros
+-o matrix1_H3K4me3_l2r_TSS.gz \ # to be used with plotHeatmap and plotProfile
+--outFileSortedRegions regions1_H3K4me3_l2r_genes.bed
+-p the number of threads
+
+nohup computeMatrix reference-point --referencePoint TSS -b 3000 -a 3000 -R up_DEGs_bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw --skipZeros -o up_DEGs_point_model.gz --outFileSortedRegions up_DEGs_point_model.bed -p 4 &
+nohup computeMatrix reference-point --referencePoint TSS -b 3000 -a 3000 -R nodiffe_DEGs_bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw --skipZeros -o nodiffe_DEGs_point_model.gz --outFileSortedRegions nodiffe_DEGs_point_model.bed -p 4 &
+nohup computeMatrix reference-point --referencePoint TSS -b 3000 -a 3000 -R down_DEGs_bed4.txt -S ../data/TRV_ALL.bw ../data/TRV_PSR_ALL.bw --skipZeros -o down_DEGs_point_model.gz --outFileSortedRegions down_DEGs_point_model.bed -p 4 &
+
+nohup computeMatrix reference-point --referencePoint TSS -b 3000 -a 3000 -R down_DEGs_bed4.txt nodiffe_DEGs_bed4.txt up_DEGs_bed4.txt -S  ../data/TRV_PSR_ALL.bw --skipZeros -o DEGs_point_model.gz --outFileSortedRegions DEGs_point_model.bed -p 4 &
+
+
+
+
+
+
+
+
+
+
+
+#画图
+#按样本画
+$ plotHeatmap -m D1213T111updown.mathyaltion.gz -out D1213T111updown.mathyaltion.svg  --zMin -0 --zMax 3
+
+plotHeatmap -m newclusterC123.meth.gz -out newclusterC123.meth.svg --plotType=lines --perGroup --plotHeight 6 --plotWidth 6
+
+plotHeatmap -m clusterC123.meth.gz -out clusterC123.meth.svg --zMin -0 --zMax 3 --colorMap "GnBu"
+plotHeatmap -m DEGs_scale_model_expression.gz -out DEGs_scale_model_expression.svg 
+plotHeatmap -m DEGs_scale_model.methylation.TRV_TRV_PSR.gz -out DEGs_scale_model.methylation.TRV_TRV_PSR3.svg --zMin -6 --zMax 6 --colorMap "GnBu"
+plotHeatmap -m DEGs_scale_model.methylation.TRV_TRV_PSR.gz -out DEGs_scale_model.methylation.TRV_TRV_PSR3.svg --zMin -6 --zMax 6 --colorMap "GnBu"
+
+DEGs_scale_model_expression.gz
+$ plotHeatmap -m DEGs_point_model.gz -out DEGs_point_model3.svg --colorMap RdBu --perGroup --whatToShow 'heatmap and colorbar' --zMin -3 --zMax 3
+     --colorMap RdBu \
+     --whatToShow 'heatmap and colorbar' \
+     --zMin -3 --zMax 3 \
+     --kmeans 4  #聚类参数
+	 
+	 
+	 
+plotProfile -m matrix.mat.gz \
+      --perGroup \
+      --kmeans 2 \
+      -plotType heatmap \
+      -out ExampleProfile3.png
+plotProfile -m DEGs_point_model.gz -out DEGs_point_model4.svg --perGroup --kmeans 2 -plotType heatmap
+	  
+	 
+plotProfile -m DEGs_point_model.gz -out DEGs_point_model2.svg --numPlotsPerRow 3 --plotTitle "Test data profile"
+              -out ExampleProfile1.png \
+              --numPlotsPerRow 2 \
+              --plotTitle "Test data profile"
+			  
+#按基因画
+$ plotProfile -m matrix2_multipleBW_l2r_dmt4groups_scaled.gz -out DMT1andtrv.DNAhat.png --plotType=lines --perGroup --colors red yellow blue orange --plotTitle "Test data profile"
+     --plotType=lines \ # add color between the x axis and the lines
+     --perGroup \ # make one image per BED file instead of per bigWig file
+     --colors red yellow blue \
+     --plotTitle "Test data profile"
+	 
+plotProfile -m DMT_ALL_ATC_TE_bed4.gz -out DMT_ALL_ATC_TE.bed4.svg --plotType=lines --perGroup --colors "#A6CEE3" "#1F78B4" "#FB9A99" "#E31A1C"
+plotProfile -m DMT_ALL_LTRGpsy_TE_bed4.gz -out DMT_ALL_LTRGpsy_TE.bed4.svg --plotType=lines --perGroup --colors "#A6CEE3" "#1F78B4" "#FB9A99" "#E31A1C"
+plotProfile -m DMT_ALL_LTRcopia_TE_bed4.gz -out DMT_ALL_LTRcopia_TE.bed4.mean.svg --plotType=lines --averageTypeSummaryPlot mean --perGroup --colors "#A6CEE3" "#1F78B4" "#FB9A99" "#E31A1C"
+
+plotProfile -m TRV_merge_ALL_ATC_TE_bed4_bin100.gz -out TRV_merge_ALL_ATC_TE_bed4_bin100.svg --plotType=lines --perGroup --colors "#1F78B4" "#E31A1C"
+plotProfile -m up_DEGs_point_model.gz -out up_DEGs_point_model.svg --plotType=lines --perGroup --colors "#1F78B4" "#E31A1C"
+plotProfile -m nodiffe_DEGs_point_model.gz -out nodiffe_DEGs_point_model.svg --plotType=lines --perGroup --colors "#1F78B4" "#E31A1C"
+plotProfile -m DEGs_point_model.gz -out DEGs_point_model.svg --plotType=lines --perGroup
+
+plotProfile -m DEGs_scale_model.methylation.TRV_TRV_PSR.gz -out DEGs_scale_model.methylation.TRV_TRV_PSR.svg
+plotProfile -m DEGs_scale_model_expression.gz -out DEGs_scale_model_expression.svg --plotType=lines --perGroup
+
+plotProfile -m D1213T111updown.mathyaltion.gz -out D1213T111updown.mathyaltion.profile.svg 
+
+plotProfile -m newclusterC123.meth.gz -out newclusterC123.meth.svg --plotType=lines --perGroup --plotHeight 6 --plotWidth 6 --colors "#1B9E77" "#E7298A"
+plotProfile -m clusterC123inS246.meth.gz -out clusterC123inS246.PROFILE2.svg --plotType=lines --perGroup --plotHeight 6 --plotWidth 6 --colors "#66A61E" "#D95F02" "#E7298A"
+
+
+
+
+##融合两个bw文件 软件，bigWigMerge TRV_3_ALL.bw TRV_5_ALL.bw TRV_ALL.bedGraph
+
+bigWigMerge TRV_PSR_24_ALL.bw TRV_PSR_28_ALL.bw TRV_PSR_ALL.bedGraph #融合生成一个bedGraph文件
+sort -k1,1 -k2,2n TRV_PSR_ALL.bedGraph > sort.TRV_PSR_ALL.bedGraph # 排序
+bedGraphToBigWig sort.TRV_PSR_ALL.bedGraph /home/zxt/basedata/genome/raw/Rosa.genome.sizes TRV_PSR_ALL.bw # sort.bedGraph文件转换为bw文件，注意此时生成的bw文件为两个bw问价之和
+
+
+
+##计算相关性
+nohup multiBigwigSummary bins -b ../data/TRV_PSR_24_ALL.bw ../data/TRV_PSR_28_ALL.bw ../data/TRV_3_ALL.bw ../data/TRV_5_ALL.bw -o wgbs_ALL.npz &
+#作图
+plotPCA -in readCounts.npz \
+-o PCA_readCounts.png \
+-T "PCA of read counts"
+
+plotPCA -in wgbs_ALL.npz -o PCA_wgbs_ALL.png
+
+$ deepTools2.0/bin/plotCorrelation \
+-in scores_per_transcript.npz \
+--corMethod pearson --skipZeros \
+--plotTitle "Pearson Correlation of Average Scores Per Transcript" \
+--whatToPlot scatterplot \
+-o scatterplot_PearsonCorr_bigwigScores.png   \
+--outFileCorMatrix PearsonCorr_bigwigScores.tab
+
+plotCorrelation -in wgbs_ALL.npz --corMethod pearson --skipZeros --whatToPlot scatterplot -o scatterplot_PearsonCorr_wgbs_ALL.svg --outFileCorMatrix scatterplot_PearsonCorr_wgbs_ALL.tab
+
+
+
+#计算甲基化水平
+
+
+
+###计算一些基因启动子的甲基化水平
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt --out C1_425_V3
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt --out C1_425_V5
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt --out C1_425_DMT24
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt --out C1_425_DMT28
+C2_290.bed4.txt C3_502.bed4.txt
+
+
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt --out C1_425_V3
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt --out C1_425_V5
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt --out C1_425_DMT24
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C1_425.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt --out C1_425_DMT28
+
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C2_290.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt --out C2_290_V3 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C2_290.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt --out C2_290_V5 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C2_290.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt --out C2_290_DMT24 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C2_290.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt --out C2_290_DMT28 &
+
+nohup BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C3_502.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_3.methratio.txt --out C3_502_V3 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C3_502.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_5.methratio.txt --out C3_502_V5 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C3_502.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR24.methratio.txt --out C3_502_DMT24 &
+BatMeth2 methyGff --coverage 4 -nC 1 --genome /home/zxt/wgbs/workspace/4.calmeth/genome/Rosa_chinensis_Old_Blush_homozygous_genome-v2.0.fasta -b4 ../C3_502.bed4.txt --body --promoter --GENE --distance 2000 --step 0.01 --methratio /home/zxt/wgbs/sid1/batcallC/TRV_PSR28.methratio.txt --out C3_502_DMT28 &
